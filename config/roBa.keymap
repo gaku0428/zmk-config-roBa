@@ -21,16 +21,6 @@
             key-positions = <11 12>;
         };
 
-        shift_tab {
-            bindings = <&kp LS(TAB)>;
-            key-positions = <12 13>;
-        };
-
-        muhennkann {
-            bindings = <&to_layer_0 INT_MUHENKAN>;
-            key-positions = <11 10>;
-        };
-
         double_quotation {
             bindings = <&kp DOUBLE_QUOTES>;
             key-positions = <20 21>;
@@ -42,7 +32,7 @@
         };
 
         kakkoL {
-            bindings = <&kp KP_LEFT_PARENTHESIS>;
+            bindings = <&kp LEFT_PARENTHESIS>;
             key-positions = <6 7>;
         };
 

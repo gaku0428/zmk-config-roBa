@@ -60,6 +60,16 @@
             bindings = <&kp RIGHT_BRACE>;
             key-positions = <31 32>;
         };
+
+        excla {
+            bindings = <&kp EXCLAMATION>;
+            key-positions = <18 17>;
+        };
+
+        question {
+            bindings = <&kp LS(SLASH)>;
+            key-positions = <6 5>;
+        };
     };
 
     macros {

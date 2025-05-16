@@ -21,16 +21,6 @@
             key-positions = <11 12>;
         };
 
-        double_quotation {
-            bindings = <&kp DOUBLE_QUOTES>;
-            key-positions = <20 21>;
-        };
-
-        eq {
-            bindings = <&kp EQUAL>;
-            key-positions = <24 25>;
-        };
-
         kakkoL {
             bindings = <&kp LEFT_PARENTHESIS>;
             key-positions = <6 7>;
@@ -69,6 +59,11 @@
         question {
             bindings = <&kp LS(SLASH)>;
             key-positions = <6 5>;
+        };
+
+        pipe {
+            bindings = <&kp PIPE>;
+            key-positions = <1 2>;
         };
     };
 

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>roBa keymap</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#ffffff;
+    --key:#f0f0f2; --key-border:#e2e2e6; --key-shadow:rgba(0,0,0,.06);
+    --txt:#1a1a1f; --sub:#a0a0aa; --behav:#b8b8c0;
+    --trans:#f7f7f9; --trans-txt:#c4c4cc;
+    --accent:#37b985; --accent-d:#2aa876;
+    --hold:#5a6acf;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;}
+  body{padding:env(safe-area-inset-top) 8px calc(env(safe-area-inset-bottom) + 30px);}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:14px 6px 8px;position:sticky;top:0;background:var(--bg);z-index:20;}
+  h1{font-size:16px;margin:0;font-weight:700;}
+  h1 small{color:var(--sub);font-weight:500;font-size:12px;margin-left:6px;}
+  #reload{background:var(--key);color:var(--txt);border:1px solid var(--key-border);
+    border-radius:9px;padding:8px 12px;font-size:13px;font-weight:600;}
+  #reload:active{background:#e6e6ea;}
+  .status{font-size:11.5px;color:var(--sub);padding:2px 6px 10px;}
+  .layer{margin:0 0 6px;}
+  .layer-head{display:flex;align-items:center;gap:8px;padding:10px 6px 14px;}
+  .layer-name{font-size:18px;font-weight:700;letter-spacing:.01em;}
+  .layer-idx{font-size:11px;color:#fff;background:var(--sub);border-radius:6px;
+    padding:2px 7px;font-weight:700;}
+  .board-wrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+  .board{position:relative;margin:0 auto;}
+  .key{position:absolute;border-radius:7px;background:var(--key);
+    border:1px solid var(--key-border);box-shadow:0 1px 1.5px var(--key-shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;overflow:hidden;cursor:pointer;}
+  .key:active{background:#e6e6ea;}
+  .key .behav{position:absolute;top:3px;left:5px;font-size:7px;color:var(--behav);
+    font-weight:600;line-height:1;}
+  .key .hold{font-size:8px;color:var(--hold);line-height:1.1;font-weight:600;margin-bottom:1px;}
+  .key .main{font-size:13px;font-weight:600;line-height:1.05;word-break:break-word;padding:0 2px;}
+  .key.small .main{font-size:9.5px;}
+  .key.trans{background:var(--trans);border-color:#eee;box-shadow:none;}
+  .key.trans .main{color:var(--trans-txt);font-weight:400;font-size:11px;}
+  .combos{margin:14px 6px 0;padding-top:8px;border-top:1px solid var(--key-border);}
+  .combos h2{font-size:14px;margin:0 0 10px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  td,th{text-align:left;padding:7px 4px;border-bottom:1px solid #eee;}
+  th{color:var(--sub);font-weight:600;font-size:11px;}
+  td.out{font-weight:700;}
+  td.pos{color:var(--sub);font-variant-numeric:tabular-nums;font-size:11px;}
+  .foot{font-size:11px;color:var(--sub);text-align:center;padding:18px 8px 0;line-height:1.6;}
+  .err{color:#e06666;}
+
+  /* detail modal (Image2 style) */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:50;
+    display:none;align-items:center;justify-content:center;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;max-width:360px;width:100%;
+    padding:20px 20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal .mkey{display:flex;align-items:center;gap:10px;margin-bottom:14px;
+    padding-bottom:14px;border-bottom:1px solid #eee;}
+  .modal .mkey .kbox{width:54px;height:54px;border-radius:8px;background:var(--key);
+    border:1px solid var(--key-border);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;position:relative;flex:0 0 auto;}
+  .modal .mkey .kbox .behav{position:absolute;top:3px;left:5px;font-size:7px;color:var(--behav);font-weight:600;}
+  .modal .mkey .kbox .main{font-size:14px;font-weight:700;}
+  .modal .mkey .kbox .hold{font-size:8px;color:var(--hold);font-weight:600;}
+  .modal .mkey .mpos{font-size:12px;color:var(--sub);}
+  .modal h3{margin:0 0 2px;font-size:13px;}
+  .row{margin:12px 0 0;}
+  .row .lab{font-size:11px;color:var(--sub);font-style:italic;margin-bottom:4px;}
+  .row .val{font-size:14px;}
+  .row .val .tag{display:inline-block;background:var(--key);border:1px solid var(--key-border);
+    border-radius:5px;padding:1px 7px;font-weight:700;margin-right:6px;}
+  .behavior-line{font-size:15px;margin-bottom:4px;}
+  .behavior-line .tag{display:inline-block;background:var(--key);border:1px solid var(--key-border);
+    border-radius:5px;padding:1px 8px;font-weight:700;font-family:ui-monospace,Menlo,monospace;margin-right:8px;}
+  .mclose{margin-top:18px;width:100%;background:var(--key);border:1px solid var(--key-border);
+    border-radius:9px;padding:11px;font-size:14px;font-weight:600;color:var(--txt);}
+  .mclose:active{background:#e6e6ea;}
+</style>
+</head>
+<body>
+<header>
+  <h1>roBa <small>keymap</small></h1>
+  <button id="reload">↻ 最新取得</button>
+</header>
+<div class="status" id="status">読み込み中…</div>
+<div id="layers"></div>
+<div class="combos" id="combos"></div>
+<div class="foot">
+  gaku0428/zmk-config-roBa（main）の config/roBa.keymap を直接表示・閲覧専用<br>
+  キーをタップすると詳細。編集は keymap-editor で。
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const RAW = "https://raw.githubusercontent.com/gaku0428/zmk-config-roBa/main/config/roBa.keymap";
+
+// roBa.json 由来の物理レイアウト（editor実物と同一座標。r=回転度, rx/ry=回転中心）
+const LAYOUT = [
+  {x:0,y:0.616},{x:1.003,y:0.247},{x:2.005,y:0},{x:3.008,y:0.132},{x:4.011,y:0.263},
+  {x:8.504,y:0.264},{x:9.506,y:0.133},{x:10.509,y:0.001},{x:11.512,y:0.248},{x:12.514,y:0.617},
+  {x:0,y:1.618},{x:1.003,y:1.25},{x:2.005,y:1.003},{x:3.008,y:1.134},{x:4.011,y:1.266},{x:5.015,y:1.504},
+  {x:7.501,y:1.505},{x:8.504,y:1.267},{x:9.506,y:1.135},{x:10.509,y:1.004},{x:11.512,y:1.251},{x:12.514,y:1.619},
+  {x:0,y:2.621},{x:1.003,y:2.253},{x:2.005,y:2.005},{x:3.008,y:2.137},{x:4.011,y:2.268},{x:5.013,y:2.507},
+  {x:7.501,y:2.508},{x:8.504,y:2.269},{x:9.506,y:2.138},{x:10.509,y:2.006},{x:11.512,y:2.254},{x:12.514,y:2.622},
+  {x:0,y:3.624},{x:1.003,y:3.255},{x:2.004,y:3.007},{x:3.219,y:3.525},
+  {x:4.342,y:3.617,r:9,rx:4.842,ry:4.117},{x:5.451,y:3.909,r:20,rx:5.951,ry:4.409},
+  {x:7.059,y:3.91,r:-20,rx:7.559,ry:4.41},{x:8.158,y:3.616,r:-10,rx:8.658,ry:4.116},
+  {x:12.514,y:3.625}
+];
+
+const U = 50;            // 1キーピッチpx
+const KEY = 46;          // キー実寸px
+const PAD = 8;
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+// レイヤー番号→名前（パース後に確定）
+let LAYER_NAMES = [];
+
+// keycode → 表示ラベル
+const KMAP = {
+  "LEFT_PARENTHESIS":"(","RIGHT_PARENTHESIS":")","LEFT_BRACKET":"[","RIGHT_BRACKET":"]",
+  "LEFT_BRACE":"{","RIGHT_BRACE":"}","EXCLAMATION":"!","SEMICOLON":";","SINGLE_QUOTE":"'",
+  "DOUBLE_QUOTES":"\"","COLON":":","UNDER":"_","UNDERSCORE":"_","TILDE":"~","PIPE":"|",
+  "AMPERSAND":"&","AT_SIGN":"@","ASTERISK":"*","PERCENT":"%","BACKSLASH":"\\","SLASH":"/",
+  "LESS_THAN":"<","GREATER_THAN":">","PLUS":"+","MINUS":"-","EQUAL":"=","COMMA":",","DOT":".",
+  "QUESTION":"?","HASH":"#","DOLLAR":"$","CARET":"^","GRAVE":"`",
+  "CAPS":"CAPS","CAPSLOCK":"CAPS","TAB":"TAB","SPACE":"␣","ENTER":"⏎","RETURN":"⏎",
+  "BACKSPACE":"⌫","ESCAPE":"ESC","ESC":"ESC","DELETE":"DEL",
+  "LEFT_SHIFT":"⇧","RIGHT_SHIFT":"⇧","LEFT_CONTROL":"⌃","RIGHT_CONTROL":"⌃",
+  "LEFT_ALT":"⌥","RIGHT_ALT":"⌥","LEFT_WIN":"⌘","LEFT_GUI":"⌘","RIGHT_GUI":"⌘","RIGHT_WIN":"⌘",
+  "LEFT_COMMAND":"⌘","RIGHT_COMMAND":"⌘",
+  "UP_ARROW":"↑","DOWN_ARROW":"↓","LEFT_ARROW":"←","RIGHT_ARROW":"→",
+  "PG_UP":"PgUp","PAGE_UP":"PgUp","PAGE_DOWN":"PgDn","PG_DN":"PgDn","HOME":"Home","END":"End",
+  "KP_NUMBER_0":"0","KP_NUMBER_1":"1","KP_NUMBER_2":"2","KP_NUMBER_3":"3","KP_NUMBER_4":"4",
+  "KP_NUMBER_5":"5","KP_NUMBER_6":"6","KP_NUMBER_7":"7","KP_NUMBER_8":"8","KP_NUMBER_9":"9",
+  "KP_SLASH":"/","KP_PLUS":"+","KP_MINUS":"-","KP_ASTERISK":"*",
+  "N0":"0","N1":"1","N2":"2","N3":"3","N4":"4","N5":"5","N6":"6","N7":"7","N8":"8","N9":"9",
+  "NUMBER_0":"0","NUMBER_1":"1","NUMBER_2":"2","NUMBER_3":"3","NUMBER_4":"4",
+  "NUMBER_5":"5","NUMBER_6":"6","NUMBER_7":"7","NUMBER_8":"8","NUMBER_9":"9"
+};
+function kc(k){
+  k=k.trim();
+  if(KMAP[k]!==undefined)return KMAP[k];
+  let m;
+  if(m=k.match(/^LS\((.+)\)$/))return "⇧"+kc(m[1]);
+  if(m=k.match(/^LC\((.+)\)$/))return "⌃"+kc(m[1]);
+  if(m=k.match(/^LA\((.+)\)$/))return "⌥"+kc(m[1]);
+  if(m=k.match(/^LG\((.+)\)$/))return "⌘"+kc(m[1]);
+  return k;
+}
+
+// 1キーの完全表示情報を返す
+// {behav, hold, main, raw, holdRaw, mainRaw, isTrans, holdLayer}
+function decode(b){
+  b=b.trim().replace(/\s+/g," ");
+  let m;
+  if(b==="&trans")return {behav:"", main:"▽", isTrans:true, raw:b};
+  if(b==="&none") return {behav:"", main:"✕", isTrans:true, raw:b};
+  if(m=b.match(/^&kp\s+(.+)$/))return {behav:"&kp", main:kc(m[1]), mainRaw:m[1], raw:b};
+  if(m=b.match(/^&mt\s+(\S+)\s+(.+)$/))return {behav:"&mt", hold:kc(m[1]), main:kc(m[2]), holdRaw:m[1], mainRaw:m[2], raw:b};
+  if(m=b.match(/^&lt\s+(\S+)\s+(.+)$/))return {behav:"&lt", hold:kc(m[1]), main:kc(m[2]), holdLayer:+m[1], mainRaw:m[2], raw:b};
+  if(m=b.match(/^&mo\s+(\S+)$/))return {behav:"&mo", main:"MO", holdLayer:+m[1], raw:b};
+  if(m=b.match(/^&to\s+(\S+)$/))return {behav:"&to", main:"TO "+m[1], toLayer:+m[1], raw:b};
+  if(m=b.match(/^&tog\s+(\S+)$/))return {behav:"&tog", main:"TOG "+m[1], toLayer:+m[1], raw:b};
+  if(m=b.match(/^&mkp\s+(.+)$/))return {behav:"&mkp", main:m[1], raw:b};
+  if(m=b.match(/^&bt\s+BT_SEL\s+(\d+)$/))return {behav:"&bt", main:"BT "+m[1], raw:b};
+  if(m=b.match(/^&bt\s+(.+)$/))return {behav:"&bt", main:m[1].replace("BT_",""), raw:b};
+  if(b==="&bootloader")return {behav:"&bootloader", main:"BOOT", small:true, raw:b};
+  if(b==="&sys_reset")return {behav:"&sys_reset", main:"RESET", small:true, raw:b};
+  if(m=b.match(/^&(\S+)\s+(.+)$/))return {behav:"&"+m[1], main:m[2], small:true, raw:b};
+  return {behav:b, main:b.replace(/^&/,""), small:true, raw:b};
+}
+
+function layerName(i){ return LAYER_NAMES[i] || ("layer_"+i); }
+
+function parseKeymap(txt){
+  const layers=[];
+  const kmMatch=txt.match(/keymap\s*\{[\s\S]*?\};\s*\};\s*$/);
+  const scope=kmMatch?kmMatch[0]:txt;
+  const layerRe=/(\w+)\s*\{\s*bindings\s*=\s*<([\s\S]*?)>\s*;/g;
+  let m;
+  while(m=layerRe.exec(scope)){
+    const name=m[1];
+    if(["combos","macros","behaviors"].includes(name))continue;
+    const toks=m[2].match(/&[a-zA-Z_]+(?:\s+[^&<>]+?)?(?=\s*&|\s*$)/g)||[];
+    layers.push({name, binds:toks.map(t=>t.trim()).filter(Boolean)});
+  }
+  LAYER_NAMES=layers.map(l=>l.name);
+
+  const combos=[];
+  const cs=txt.indexOf("combos {"), ce=txt.indexOf("macros {");
+  if(cs!==-1){
+    const blk=txt.slice(cs, ce!==-1?ce:undefined);
+    const cRe=/(\w[\w.]*)\s*\{\s*bindings\s*=\s*<([^>]+)>\s*;\s*key-positions\s*=\s*<([^>]+)>\s*;/g;
+    let c;
+    while(c=cRe.exec(blk)){
+      combos.push({name:c[1].trim(), out:decode(c[2].trim()).main, pos:c[3].trim().replace(/\s+/g," ")});
+    }
+  }
+  return {layers, combos};
+}
+
+function keyHTML(b, idx){
+  const d=decode(b);
+  const cls=["key"];
+  if(d.isTrans)cls.push("trans");
+  if(d.small)cls.push("small");
+  let inner="";
+  if(d.behav)inner+=`<span class="behav">${esc(d.behav)}</span>`;
+  if(d.hold)inner+=`<span class="hold">${esc(d.hold)}</span>`;
+  inner+=`<span class="main">${esc(d.main)}</span>`;
+  return `<div class="${cls.join(" ")}" data-bind="${esc(b)}" data-idx="${idx}" style="width:${KEY}px;height:${KEY}px;">${inner}</div>`;
+}
+
+function renderBoard2(binds){
+  const xs=LAYOUT.map(k=>k.x), ys=LAYOUT.map(k=>k.y);
+  const w=(Math.max(...xs)+1)*U, h=(Math.max(...ys)+1)*U;
+  let html=`<div class="board" style="width:${w}px;height:${h}px;">`;
+  LAYOUT.forEach((pos,i)=>{
+    const b=binds[i]||"&trans";
+    const d=decode(b);
+    const cls=["key"]; if(d.isTrans)cls.push("trans"); if(d.small)cls.push("small");
+    let style=`left:${pos.x*U}px;top:${pos.y*U}px;width:${KEY}px;height:${KEY}px;`;
+    if(pos.r){
+      const ox=(pos.rx - pos.x)*U + KEY/2;
+      const oy=(pos.ry - pos.y)*U + KEY/2;
+      style+=`transform:rotate(${pos.r}deg);transform-origin:${ox}px ${oy}px;`;
+    }
+    let inner="";
+    if(d.behav)inner+=`<span class="behav">${esc(d.behav)}</span>`;
+    if(d.hold)inner+=`<span class="hold">${esc(d.hold)}</span>`;
+    inner+=`<span class="main">${esc(d.main)}</span>`;
+    html+=`<div class="${cls.join(" ")}" style="${style}" data-bind="${esc(b)}" data-idx="${i}">${inner}</div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+function render(data){
+  document.getElementById("layers").innerHTML = data.layers.map((L,i)=>`
+    <div class="layer">
+      <div class="layer-head"><span class="layer-idx">${i}</span><span class="layer-name">${esc(L.name)}</span></div>
+      <div class="board-wrap">${renderBoard2(L.binds)}</div>
+    </div>`).join("");
+
+  const cc=document.getElementById("combos");
+  cc.innerHTML = data.combos.length ? `<h2>Combos（同時押し）</h2><table>
+    <tr><th>出力</th><th>キー位置</th><th>名前</th></tr>
+    ${data.combos.map(c=>`<tr><td class="out">${esc(c.out)}</td><td class="pos">${esc(c.pos)}</td><td>${esc(c.name)}</td></tr>`).join("")}
+    </table>` : "";
+
+  // タップで詳細
+  document.querySelectorAll(".key").forEach(el=>{
+    el.addEventListener("click", ()=>showDetail(el.dataset.bind, +el.dataset.idx));
+  });
+}
+
+// 詳細モーダル（Image2準拠）
+function showDetail(bind, idx){
+  const d=decode(bind);
+  let kbox=`<div class="kbox">`;
+  if(d.behav)kbox+=`<span class="behav">${esc(d.behav)}</span>`;
+  if(d.hold)kbox+=`<span class="hold">${esc(d.hold)}</span>`;
+  kbox+=`<span class="main">${esc(d.main)}</span></div>`;
+
+  // behavior名と説明
+  const NAMES={
+    "&kp":"Key Press","&mt":"Mod/Tap","&lt":"Layer/Tap","&mo":"Momentary Layer",
+    "&to":"To Layer","&tog":"Toggle Layer","&trans":"Transparent","&none":"None",
+    "&mkp":"Mouse Button","&bt":"Bluetooth","&bootloader":"Bootloader","&sys_reset":"Reset"
+  };
+  const bname=NAMES[d.behav]||"Behavior";
+
+  let params="";
+  if(d.behav==="&kp"){
+    params=`<div class="row"><div class="lab">KEY:</div><div class="val"><span class="tag">${esc(d.main)}</span>${esc(d.mainRaw||"")}</div></div>`;
+  } else if(d.behav==="&mt"){
+    params=`<div class="row"><div class="lab">HOLD（長押し）:</div><div class="val"><span class="tag">${esc(d.hold)}</span>${esc(d.holdRaw||"")}</div></div>
+            <div class="row"><div class="lab">TAP（単押し）:</div><div class="val"><span class="tag">${esc(d.main)}</span>${esc(d.mainRaw||"")}</div></div>`;
+  } else if(d.behav==="&lt"){
+    params=`<div class="row"><div class="lab">HOLD（長押し）:</div><div class="val"><span class="tag">${d.holdLayer}</span>${esc(layerName(d.holdLayer))} レイヤー</div></div>
+            <div class="row"><div class="lab">TAP（単押し）:</div><div class="val"><span class="tag">${esc(d.main)}</span>${esc(d.mainRaw||"")}</div></div>`;
+  } else if(d.behav==="&mo"){
+    params=`<div class="row"><div class="lab">LAYER:</div><div class="val"><span class="tag">${d.holdLayer}</span>${esc(layerName(d.holdLayer))} レイヤー（押している間だけ有効）</div></div>`;
+  } else if(d.behav==="&to"||d.behav==="&tog"){
+    params=`<div class="row"><div class="lab">LAYER:</div><div class="val"><span class="tag">${d.toLayer}</span>${esc(layerName(d.toLayer))} レイヤー</div></div>`;
+  } else if(d.isTrans){
+    params=`<div class="row"><div class="val">このレイヤーでは透過。下のレイヤーのキーがそのまま効きます。</div></div>`;
+  } else {
+    params=`<div class="row"><div class="lab">RAW:</div><div class="val">${esc(d.raw)}</div></div>`;
+  }
+
+  document.getElementById("modal").innerHTML=`
+    <div class="mkey">${kbox}<div class="mpos">キー位置 ${idx}</div></div>
+    <div class="behavior-line"><span class="tag">${esc(d.behav||"—")}</span>${esc(bname)}</div>
+    ${params}
+    <div class="row"><div class="lab">元の記述:</div><div class="val" style="font-family:ui-monospace,Menlo,monospace;font-size:12px;">${esc(d.raw)}</div></div>
+    <button class="mclose" onclick="hideDetail()">閉じる</button>`;
+  document.getElementById("overlay").classList.add("show");
+}
+function hideDetail(){document.getElementById("overlay").classList.remove("show");}
+document.getElementById("overlay").addEventListener("click",e=>{
+  if(e.target.id==="overlay")hideDetail();
+});
+
+async function load(){
+  const st=document.getElementById("status");
+  st.textContent="GitHubから取得中…"; st.className="status";
+  try{
+    const res=await fetch(RAW+"?t="+Date.now());
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const txt=await res.text();
+    render(parseKeymap(txt));
+    st.textContent=`${LAYER_NAMES.length}レイヤー ・ 取得 ${new Date().toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
+  }catch(e){
+    st.innerHTML=`<span class="err">取得失敗: ${esc(e.message)}</span>`;
+  }
+}
+document.getElementById("reload").addEventListener("click",load);
+load();
+</script>
+</body>
+</html>

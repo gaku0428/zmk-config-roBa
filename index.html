@@ -32,8 +32,9 @@
   .layer-name{font-size:18px;font-weight:700;letter-spacing:.01em;}
   .layer-idx{font-size:11px;color:#fff;background:var(--sub);border-radius:6px;
     padding:2px 7px;font-weight:700;}
-  .board-wrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
-  .board{position:relative;margin:0 auto;}
+  .board-wrap{padding-bottom:6px;}
+  .board-fit{position:relative;width:100%;overflow:hidden;}
+  .board{position:relative;transform-origin:top left;}
   .key{position:absolute;border-radius:7px;background:var(--key);
     border:1px solid var(--key-border);box-shadow:0 1px 1.5px var(--key-shadow);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -227,7 +228,8 @@ function keyHTML(b, idx){
 function renderBoard2(binds){
   const xs=LAYOUT.map(k=>k.x), ys=LAYOUT.map(k=>k.y);
   const w=(Math.max(...xs)+1)*U, h=(Math.max(...ys)+1)*U;
-  let html=`<div class="board" style="width:${w}px;height:${h}px;">`;
+  // .board-fit が画面幅に合わせて中の .board を縮小する
+  let html=`<div class="board-fit" data-bw="${w}" data-bh="${h}"><div class="board" style="width:${w}px;height:${h}px;">`;
   LAYOUT.forEach((pos,i)=>{
     const b=binds[i]||"&trans";
     const d=decode(b);
@@ -244,7 +246,7 @@ function renderBoard2(binds){
     inner+=`<span class="main">${esc(d.main)}</span>`;
     html+=`<div class="${cls.join(" ")}" style="${style}" data-bind="${esc(b)}" data-idx="${i}">${inner}</div>`;
   });
-  html+=`</div>`;
+  html+=`</div></div>`;
   return html;
 }
 
@@ -265,7 +267,23 @@ function render(data){
   document.querySelectorAll(".key").forEach(el=>{
     el.addEventListener("click", ()=>showDetail(el.dataset.bind, +el.dataset.idx));
   });
+
+  fitBoards();
 }
+
+// 各ボードを親要素の幅に合わせて縮小し、はみ出さないようにする
+function fitBoards(){
+  document.querySelectorAll(".board-fit").forEach(fit=>{
+    const bw=+fit.dataset.bw, bh=+fit.dataset.bh;
+    const avail=fit.clientWidth;
+    const scale=Math.min(1, avail/bw);
+    const board=fit.querySelector(".board");
+    board.style.transform=`scale(${scale})`;
+    fit.style.height=(bh*scale)+"px";  // 縮小後の高さに合わせてコンテナを詰める
+  });
+}
+let _rt;
+window.addEventListener("resize", ()=>{ clearTimeout(_rt); _rt=setTimeout(fitBoards,150); });
 
 // 詳細モーダル（Image2準拠）
 function showDetail(bind, idx){

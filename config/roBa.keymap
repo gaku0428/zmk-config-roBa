@@ -70,6 +70,26 @@
             bindings = <&kp CAPS>;
             key-positions = <20 21>;
         };
+
+        mic {
+            bindings = <&kp LS(LC(M))>;
+            key-positions = <11 12 13>;
+        };
+
+        mic_n {
+            bindings = <&kp LC(LS(N))>;
+            key-positions = <1 2 3>;
+        };
+
+        mic_n {
+            bindings = <&kp LC(LS(N))>;
+            key-positions = <6 7 8>;
+        };
+
+        mic {
+            bindings = <&kp LC(LS(M))>;
+            key-positions = <18 20 19>;
+        };
     };
 
     macros {
